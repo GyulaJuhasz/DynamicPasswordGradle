@@ -1,5 +1,28 @@
 apply plugin: 'com.android.application'
 
+task('inputKeyPasswords') {
+	doLast {
+		def keyStorePassword = null
+		while (!(keyStorePassword instanceof String) || ((String) keyStorePassword).isEmpty()) {
+			keyStorePassword = inputPassword('KeyStore password', 'Please enter the password for the keystore:')
+		}
+
+		def keyPassword = null
+		while (!(keyPassword instanceof String) || ((String) keyPassword).isEmpty()) {
+			keyPassword = inputPassword('Key password', 'Please enter the password for the signing key:')
+		}
+
+		android.signingConfigs.releaseSigningConfig.storePassword = keyStorePassword
+		android.signingConfigs.releaseSigningConfig.keyPassword = keyPassword
+	}
+}
+
+tasks.whenTaskAdded { task ->
+	if (task.name.trim() == 'validateSigningRelease') {
+		task.dependsOn inputKeyPasswords
+	}
+}
+
 android {
 	compileSdkVersion 25
 	buildToolsVersion "25.0.3"
@@ -15,9 +38,9 @@ android {
 	signingConfigs {
 		releaseSigningConfig {
 			storeFile file('ExampleKeyStore')
-			storePassword 'keystorepassword'
+			storePassword ''
 			keyAlias 'examplekey'
-			keyPassword 'keypassword'
+			keyPassword ''
 		}
 	}
 
